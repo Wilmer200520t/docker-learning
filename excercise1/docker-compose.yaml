@@ -1,0 +1,36 @@
+services:
+  postgredb:
+    container_name: postgredb
+    image: postgres:15.1
+    restart: always
+    environment:
+      POSTGRES_USER: wilmer
+      POSTGRES_PASSWORD: Wilmer2005!
+      POSTGRES_DB: testdb
+    volumes:
+      # - postgres-db:/var/lib/postgresql/data
+      - ./postgres/data:/var/lib/postgresql/data
+    networks:
+      - postgres-db
+    ports:
+      - "5432:5432"
+  pgAdmin:
+    depends_on:
+      - postgredb
+    container_name: pgAdmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: wilmer.2030@hotmail.com
+      PGADMIN_DEFAULT_PASSWORD: Wilmer2005!
+    networks:
+      - postgres-db
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres-db:
+    external: true
+
+networks:
+  postgres-db:
+    external: true

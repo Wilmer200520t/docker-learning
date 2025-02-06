@@ -1,0 +1,54 @@
+services:
+  db_no_relational:
+    container_name: ${MONGO_DB_NAME}
+    restart: always
+    image: mongo:6.0
+    volumes:
+      - poke-vol:/data/db
+    ports:
+      - ${MONGO_PORT}:27017
+    networks:
+      - poke-net
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
+    command: ["--auth"]
+
+  mongoexpress:
+    container_name: ${MONGO_EXPRESS_NAME}
+    restart: always
+    depends_on:
+      - db_no_relational
+    image: mongo-express:1-20-alpine3.19
+    ports:
+      - 8081:8081
+    networks:
+      - poke-net
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=${MONGO_DB_NAME}
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+
+  poke-app:
+    depends_on:
+      - db_no_relational
+    container_name: pokemon-nest-app
+    restart: always
+    image: klerith/pokemon-nest-app:1.0.0
+    ports:
+      - 3000:3000
+    networks:
+      - poke-net
+    environment:
+      - MONGODB=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@db_no_relational:${MONGO_PORT}
+      - DB_NAME=${MONGO_DB_NAME}
+
+volumes:
+  poke-vol:
+    external: true
+
+networks:
+  poke-net:
+    external: true
